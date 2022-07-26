@@ -1,5 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:weather/screens/home_screen.dart';
 import 'package:weather/screens/login_screen.dart';
 
 Future<void> main() async {
@@ -21,7 +23,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const LoginScreen(),
+      home: FirebaseAuth.instance.currentUser == null
+          ? LoginScreen()
+          : HomeScreen(),
     );
   }
 }
