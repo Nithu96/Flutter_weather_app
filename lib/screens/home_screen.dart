@@ -36,19 +36,17 @@ class _HomeScreenState extends State<HomeScreen> {
   late Response response;
 
   var dio = Dio();
+  CurrentCity? currentCity;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Welcome to Weather App"),
-          centerTitle: true,
-        ),
-        body: Padding(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Welcome to Weather App"),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
             children: [
@@ -63,8 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _cityName,
                     cursorColor: Colors.black,
                     keyboardType: TextInputType.name,
-                    style: TextStyle(fontSize: 15, color: Colors.black),
-                    decoration: new InputDecoration(
+                    style: const TextStyle(fontSize: 15, color: Colors.black),
+                    decoration: InputDecoration(
                       // icon: new Icon(Icons.search),
                       labelText: "City",
                       labelStyle: TextStyle(
@@ -102,6 +100,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         print(response.data);
                         print(response.data["request"]);
                         print(response.data["request"]['type']);
+                        currentCity = CurrentCity.fromSnapshot(response.data);
                         setState(() {});
                       },
                       style: ElevatedButton.styleFrom(
@@ -111,33 +110,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: const Text('City')),
                 ),
               ),
-              weatherBox(),
-              // Container(
-              //   width: MediaQuery.of(context).size.width,
-              //   height: 100,
-              //   color: Colors.blue,
-              //   child: Row(
-              //     children: [
-              //
-              //     ],
-              //   )
-              //   // Text(
-              //   //     // '${CurrentCity.query}'
-              //   //   //'${response.data["request"]['type']}',
-              //   //     'err'
-              //   //   ),
-              // ),
-              Container(
-                width: MediaQuery.of(context).size.width,
-                child: ElevatedButton(
-                    onPressed: () async {
-                      logout(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF0091cf),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10))),
-                    child: const Text('Log out')),
+              currentCity == null ? Container() : weatherBox(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        logout(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                          primary: Color(0xFF0091cf),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10))),
+                      child: const Text('Log out')),
+                ),
               ),
             ],
           ),
@@ -148,95 +135,215 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget weatherBox() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                  height: 80,
-                  width: MediaQuery.of(context).size.width /2 - 70,
-                  decoration: BoxDecoration(
-                    //border: Border.all(color: const Color(0xFFFFCF4E)),
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    height: 80,
+                    width: MediaQuery.of(context).size.width / 2 - 80,
+                    child: Container(
+                      decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage("${currentCity?.current!['weather_icons'][0]}"),
+                            fit: BoxFit.cover,
+                          ),
+                          shape: BoxShape.rectangle),
+                    ),
+                  )
+                ],
+              ),
+              SizedBox(width: 20,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 420,
+                    width: MediaQuery.of(context).size.width / 2 - 20,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text("${currentCity?.location!['name']}",
+                      maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14,
+                            )),
+                        Text("${currentCity?.location!['region']}",
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("Lat : " '${currentCity?.location!['lat']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("Lon : "'${currentCity?.location!['lon']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("TimeZone: "'${currentCity?.location!['timezone_id']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("localtime : "'${currentCity?.location!['localtime']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("localtime epoch : "'${currentCity?.location!['localtime_epoch']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("utc offset : "'${currentCity?.location!['utc_offset']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("observation time : "'${currentCity?.current!['observation_time']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("temperature : "'${currentCity?.current!['temperature']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("weather code : "'${currentCity?.current!['weather_code']}',
+                          maxLines: 20,style:const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("weather descriptions : "'${currentCity?.current!['weather_descriptions'][0]}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("wind speed : "'${currentCity?.current!['wind_speed']}',
+                          maxLines: 20,style:const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("wind degree : "'${currentCity?.current!['wind_degree']}',
+                          maxLines: 20,style:const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("wind dir : "'${currentCity?.current!['wind_dir']}',
+                          maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("pressure : "'${currentCity?.current!['pressure']}',
+                            maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("precip : "'${currentCity?.current!['precip']}',
+                            maxLines: 20,style:const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("humidity : "'${currentCity?.current!['humidity']}',
+                            maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("cloud cover : "'${currentCity?.current!['cloudcover']}',
+                            maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("feels like : "'${currentCity?.current!['feelslike']}',
+                            maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("uv index : "'${currentCity?.current!['uv_index']}',
+                            maxLines: 20,style:const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("cloud cover : "'${currentCity?.current!['cloudcover']}',
+                            maxLines: 20,style:const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("visibility : "'${currentCity?.current!['visibility']}',
+                            maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                        Text("is_day : "'${currentCity?.current!['is_day']}',
+                            maxLines: 20,style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w400,
+                              overflow: TextOverflow.ellipsis,
+                              fontSize: 14,
+                            )),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        height: 80,
-                        width: MediaQuery.of(context).size.width / 2 - 80,
-                        child: Container(
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                image: NetworkImage('https://assets.weatherstack.com/images/wsymbols01_png_64/wsymbol_0002_sunny_intervals.png'),
-                                fit: BoxFit.cover,
-                              ),
-                              shape: BoxShape.rectangle),
-                        ),
-                      )
-                    ],
-                  )),
-              Container(
-                  height: 300,
-                  width: MediaQuery.of(context).size.width /2 - 20,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xFFFFCF4E)),
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        height: 200,
-                        width: MediaQuery.of(context).size.width / 2 - 120,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text("textOne",
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 16,
-                                )),
-                            Text('textTwo',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: 16,
-                                )),
-                            Text('textTwo',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: 16,
-                                )),
-                            Text('textTwo',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: 16,
-                                )),
-                            Text('textTwo',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: 16,
-                                )),
 
-                          ],
-                        ),
-                      ),
-
-                    ],
-                  ))
+                ],
+              )
             ],
           )
         ],
